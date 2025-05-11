@@ -1,0 +1,12 @@
+Vytvořte IS pro nově otevřenou veganskou restauraci, který napomůže začínající restauraci zlepšit přehled o rezervacích a objednávkách.
+Restaurace je členěna do více místností a má terasu na střeše a zadní zahrádku, kde se kromě stolů a sedaček pro hosty nachází záhony, kde si restaurace pěstuje svou vlastní zeleninu a bylinky.
+Zákazník si po telefonické dohodě nebo přes mail může zarezervovat jeden nebo více stolů v místnostech, na terase či na zahrádce, anebo celé místnosti, případně i celou restauraci pro různé společenské akce.
+Součástí rezervace může být také objednávka nápojů a jídel.
+Protože je restaurace "child-friendly" nabízí objednávku polovičních porcí, za kterou si účtuje 70% ceny.
+Systém musí umožňovat zaměstnancům restaurace vkládat objednávky spolu s informacemi, který zaměstnanec danou objednávku vložil a pro koho je určena.
+Když se zákazníci rozhodnou zaplatit, musí jim systém (kvůli EET) vystavit účtenku.
+Po zaplacení pak příslušný zaměstnanec vloží záznam o platbě do systému.
+Systém by měl také poskytovat podrobný přehled tržeb za vybrané období, aby její majitel věděl, zda restaurace prosperuje.
+Přístup k této funkci bude mít pouze majitel.
+V neposlední řadě musí systém evidovat veškeré prodávané jídlo a pití včetně konkrétního složení, aby měli přehled, kolik surovin je potřeba do skladu nakoupit, a seznamu alergenů.
+Majitel a odpovědný vedoucí mají možnost měnit ceny jídla a pití nebo přidávat a odebírat položky podle sezónních surovin, které jsou zrovna k dispozici. 
