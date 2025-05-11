@@ -7,3 +7,6 @@
 [submodule "1BIT/IVS/prj2"]
 	path = 1BIT/IVS/prj2
 	url = https://github.com/hungdojan/IVS_Kalkulacka
+[submodule "2BIT/IFJ"]
+	path = 2BIT/IFJ
+	url = https://github.com/hungdojan/IFJ21_compiler
