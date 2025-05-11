@@ -1,0 +1,379 @@
+#!/bin/sh
+
+# Subject: IOS (Operating Systems)
+#          Project 1 - Stock exchange market reports
+# Brief: Program allows user to process data logs
+#
+# File: tradelog (Shell)
+# Author: Hung Do, BUT FIT
+# Date: 03/04/2021
+
+# default settings
+export POSIXLY_CORRECT=1 
+export LC_ALL='C'
+
+# global variable
+DELIM=';'
+WIDTH=
+DATE_AFTER=
+DATE_BEFORE=
+COMMAND=
+
+# --------------------------------------------------
+
+# prints usage
+usage() {
+    echo  "./tradelog [-h|--help] [FILTER] [COMMAND] [LOG_FILES]"
+    echo "
+    Only one command can be called:
+        list-tick – a list of tickers in the log file; sorted alphabetically
+        profit – total value of all close-outs
+        pos – list of held positions per ticker; sorted by value 
+        last-price – last known value of a unit per ticker, sorted alphabetically
+        hist-ord – graph representing a number of transaction per ticker; sorted alphabetically
+        graph-pos – graph representing value of held positions per ticker; sorted alphabetically
+
+    FILTERS can be set with these flags below:
+        -a DATETIME – after: FILTER OUT transactions that happened BEFORE set DATETIME
+                      format of DATETIME is 'YYYY-MM-DD HH:MM:SS'
+
+            e.g. ./tradelog -a '2000-01-01 00:00:00' [COMMAND] [LOG_FILES]
+                program works with transactions that happened from '2000-01-01 00:00:00' onward (including that DATETIME)
+
+        -b DATETIME – before: FILTER OUT transaction that happend AFTER set DATETIME
+                      format of DATETIME is 'YYYY-MM-DD HH:MM:SS' 
+
+            e.g. ./tradelog -b '2000-01-01 00:00:00' [COMMAND] [LOG_FILES]
+                program works with transactions that happened up to '2000-01-01 00:00:00' (including that DATETIME)
+
+        -t TICKER – FILTER OUT transactions that aren't connected with selected TICKERS; multiple TICKERS can be selected
+                    if no TICKER is selected, program works with all of them
+
+            e.g. ./tradelog -t TSLA -t AMZN [COMMAND] [LOG_FILES]
+                program works with TSLA and AMZN's transactions
+                
+        -w WIDTH – sets the variable WIDTH (only positive value allowed) of the highest absolute value in the graph
+                   this flag can be set only once 
+
+            e.g. ./tradelog -tA -tB -tC -w 5 [hist-ord|graph-pos] [LOG_FILES]
+                A         : #####
+                B         : ##
+                C         : !!!
+
+        -h a --help – displays this help and exit
+    
+    LOG FILES format:
+        DATE_TIME;TICKER;TRANSACTION_TYPE;VALUE_PER_UNIT;CURRENCY;NUMBER_OF_UNITS;LOG_ID
+        Supported compressed file format: .gz
+
+        It is allowed to import multiple LOG FILES; if no LOG FILE is selected, program reads from STDIN
+    "
+    exit 0
+}
+
+# prints logs that are newer than given datetime in variable DATE_BEFORE
+# if not set it prints all 
+date_after() {
+    if [ -n "$DATE_AFTER" ]; then
+        awk -F $DELIM -v dateA="$DATE_AFTER" '{ if (dateA <= $1) { print } }'
+    else
+        awk '{print}'
+    fi
+    exit 0
+}
+
+# prints logs that are older than given datetime in variable DATE_BEFORE
+# if not set it prints all 
+date_before() {
+    if [ -n "$DATE_BEFORE" ]; then
+        awk -F $DELIM -v dateB="$DATE_BEFORE" '{ if (dateB >= $1) { print } }'
+    else
+        awk '{print}'
+    fi
+    exit 0
+}
+
+# prints logs that contain set tickers, if non is set it prints all
+filter_ticks() {
+    if [ -z "$SEL_TICK" ]; then
+        awk '{ print }'
+    else
+        awk -v d="${SEL_TICK}" -F $DELIM 'BEGIN { split(d, ticks, " ") }
+        {
+            for (key in ticks) {
+                if ($2 == ticks[key]) 
+                    print
+            }
+        }'
+    fi
+    exit 0
+}
+
+# combines filters; differentiate between reading from file and stdin
+print_file() {
+    if [ -z "$FILES" ]; then
+        filter_ticks
+    else
+        for i in ${FILES}; do
+            if [ `echo $i | grep '\.gz'` ]; then
+                gzip -dc $i | filter_ticks
+            else
+                cat $i | filter_ticks
+            fi
+        done
+    fi | date_after | date_before
+    exit 0
+}
+
+# prints sorted tickers that are in the log file
+list_tick() {
+    print_file | cut -d $DELIM -f2 | sort | uniq
+    exit 0
+}
+
+# prints the total profit of all transactions within the file
+# difference of "sell" and "buy"
+profit() {
+    print_file | awk -F $DELIM -v sum=0 '
+    {
+        if ($3 == "buy") {
+            sum -= ($4 * $6)
+        } 
+        else {
+            sum += ($4 * $6)
+        }
+    }
+    END { printf "%.2f\n", sum }'
+    exit 0
+}
+
+# prints the total value of held positions for each tickers
+# sorted by the value in descending order
+# ( [volume of bought units] - [volume of sold units] ) * [latest value per unit]
+pos() {
+    print_file | awk -F $DELIM '
+    {
+        if ($3 == "buy")
+            vol[$2] += $6;
+        else
+            vol[$2] -= $6;
+
+        price[$2] = $4;
+    }
+    END { 
+        for (key in vol) {
+            # formating float number
+            digits = sprintf("%.2f", vol[key] * price[key]);
+            if (max < length(digits)) {
+                max = length(digits);
+            }
+        }
+
+        for (key in vol) 
+            printf "%-10s: %*.2f\n", key, max, vol[key] * price[key] 
+    }' | sort -k3 -n -r
+    exit 0
+}
+
+# prints latest value per unit
+# sorted alphabetically
+last_price() {
+    print_file | awk -F $DELIM '
+    { price[$2] = $4; }
+    END { 
+        # formating float number
+        for (key in price) {
+            digits = sprintf("%.2f", price[key]);
+            if (max < length(digits)) {
+                max = length(digits);
+            }
+        }
+
+        for (key in price) 
+            printf "%-10s: %*.2f\n", key, max, price[key] 
+    }' | sort 
+    exit 0
+}
+
+# prints a horizontal graph of all the transaction
+# variable WIDTH sets the number of characters (representing graph unit) 
+#   for ticker with the highest total of transaction
+# if not set each transaction value is one character
+# '#' represents a positive number; '!' represents a negative number
+# sorted alphabetically
+hist_ord() {
+    print_file | awk -F $DELIM -v w="$WIDTH" '
+    { trans[$2] += 1 }
+    END {
+        for (key in trans)
+            if (max < trans[key])
+                max = trans[key]
+
+        # setting width
+        if (w)
+            w /= max
+        else
+            w = 1
+
+        # printing graph
+        for (key in trans) {
+            printf "%-10s:", key 
+            for (i = 0.99; i < trans[key] * w; i++) {
+                if (i < 1)
+                    printf " "
+                printf "#"
+            }
+            printf "\n"
+        }
+    }' | sort
+    exit 0
+}
+
+# prints a horizontal graph of total value of held positions per ticker (see pos)
+# variable WIDTH sets the number of characters (representing graph unit) 
+#   for ticker with the highest value
+# if not set WIDTH is set to 1000 as default
+# '#' represents a positive number; '!' represents a negative number
+# sorted alphabetically
+graph_pos() {
+    print_file | awk -F $DELIM -v w=$WIDTH '
+    {
+        if ($3 == "buy") {
+            vol[$2] += $6;
+        }
+        else {
+            vol[$2] -= $6;
+        }
+        price[$2] = $4;
+    }
+    END { 
+        # MAX(ABS(a), ABS(b))
+        for (key in vol) {
+            value = vol[key] * price[key];
+            if (value < 0)
+                value *= -1
+            if (max < value)
+                max = value;
+        }
+
+        # setting width
+        if (w)
+            w /= max
+        else
+            w = 1 / 1000
+
+        # printing graph
+        for (key in vol) {
+            printf "%-10s:", key 
+            if (vol[key] * price[key] > 0) {  # positive numbers
+                for (i = 0.99; i < vol[key] * price[key] * w; i++) {
+                    if (i < 1)
+                        printf " "
+                    printf "#"
+                }
+            }
+            else {   # negative numbers
+                for (i = 0.99; i < -1 * vol[key] * price[key] * w; i++) {
+                    if (i < 1)
+                        printf " "
+                    printf "!"
+                }
+            }
+            printf "\n"
+        }
+    }' | sort
+    exit 0
+}
+
+# ----------------------------------------------------
+
+# loading filters from arguments
+while [ -n "$1" ]; do
+    case "$1" in
+        -h | --help) # print help
+            usage
+            shift
+            ;;
+        -a) # date after; checks format
+            if ! echo $2 | grep -Eq "^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}"; then
+                echo "Error: wrong DATETIME format" >&2
+                exit 1
+            else
+                # uninitialized variable
+                if [ -z "$DATE_AFTER" ]; then
+                    DATE_AFTER=$2
+                else    # intersection of dates
+                    if [ "$2" < "$DATE_AFTER" ]; then
+                        DATE_AFTER=$2
+                    fi
+                fi
+                shift 2
+            fi
+            ;;
+        -b) # date before
+            if ! echo $2 | grep -Eq "^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}"; then
+                echo "Error: wrong DATETIME format" >&2
+                exit 1
+            else
+                # uninitialized variable
+                if [ -z "$DATE_BEFORE" ]; then
+                    DATE_BEFORE=$2
+                else    # intersection of dates
+                    if [ "$2" > "$DATE_BEFORE" ]; then
+                        DATE_BEFORE=$2
+                    fi
+                fi
+                shift 2
+            fi
+            ;;
+        -t) # tickers
+            # adding space if it's not a first selected ticker
+            if [ -n "$SEL_TICK" ]; then
+                SEL_TICK="$SEL_TICK "
+            fi
+            SEL_TICK="$SEL_TICK$2"
+            shift 2
+            ;;
+        -w)  # width; allowed to be set only once
+            if [ -n "$WIDTH" ]; then
+                echo "Error: $1 flag has been set already!" >&2
+                exit 1
+            elif [ $2 -le 0 ]; then
+                echo "Error: $1 parameter must be a positive number!" >&2
+                exit 1
+            else
+                WIDTH=$2
+            fi
+            shift 2
+            ;;
+        list-tick | profit | pos | last-price | hist-ord | graph-pos)
+            # allowed to load only one command (only first one will be chosen)
+            if [ -z "$COMMAND" ]; then
+                COMMAND=$1
+            fi
+            shift
+            ;;
+        *)
+            # loading files; checking file types
+            if [ ! -f "$1" ]; then
+                echo "Error: command not found!" >&2
+                exit 1
+            else
+                # adding space if variable was already initialized
+                if [ -n "$FILES" ]; then
+                    FILES="$FILES "
+                fi
+                FILES="$FILES$1"
+            fi
+            shift
+            ;;
+    esac
+done
+
+
+# executing commands
+if [ -n "$COMMAND" ]; then
+    $(echo ${COMMAND} | tr '-' '_')
+else
+    print_file
+fi
