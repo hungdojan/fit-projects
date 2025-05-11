@@ -1,0 +1,84 @@
+13.89: celkem bodu
+
+====== Prehled hodnoceni ==========
+4.0: obhajoba projektu
+0.0: reseno pres linked list, dobre; vhodne pridavat testy na null na zacatek funkci, do kterych predavate ukazatel (napr. cmd_init) - funkce jsou pak vice univerzalni
+==== Dobre ====
+1:ok:basic_set1: [1,1]
+0.2:ok:basic_set1: [1,1];[2,2]
+1:ok:sel1: [1,1];set x
+0.3:ok:sel1: [1,1];[2,2];set x
+0.5:ok:sel2: [1,_];set x
+0.4:ok:sel3: [_,_];set x
+0.3:ok:min: [3,_];[min];set x
+0.3:ok:max: [_,_];[max];set x
+0.4:ok:find: [_,_];[find orld];set x
+0.4:ok:irow: [1,1];irow
+0.4:ok:arow: [1,1];arow
+0.4:ok:icol: [1,2];icol
+0.4:ok:acol: [1,2];acol
+0.2:ok:drow: [1,1];drow
+0.3:ok:dcol: [1,1];dcol
+0.3:ok:clear: [2,2];clear
+0.4:ok:swap: [1,1];swap [2,1]
+0.4:ok:sum: [1,3,2,3];sum [3,3]
+0.4:ok:avg: [1,3,2,3];avg [3,3]
+0.3:ok:len: [1,1];len [3,3]
+0.4:ok:vars1: [1,1];def _0;[2,1];def _1;use _0;[1,1];use _1
+0.3:ok:vars2: [1,3];def _9;inc _9;use _9
+0.4:ok:vars3: [1,1];[set];[2,1];[_];set x
+0.5:ok:esc1: [2,1];arow
+0:ok:valgrind: manipulace s pameti
+==== Spatne ====
+0:failed:count: [1,3,2,3];count [3,3]
+0:failed:esc2: [2,1];arow
+0:failed:goto1: [1,1];goto +2;len [1,1];[2,2];[2,2];set x
+0:failed:ctl: [1,1];[3,1];def _0;[3,3];def _1;sub _1 _0;iszero _1 +7;[1,1];set x;[3,3];set 3;goto -11;[1,1];[1,1]
+
+====== Log z prekladu =============
+Ok
+
+====== Analyza kodu ===============
+-0.01: globalni promenne
+#    sps.c:1631: cmd_names
+#    sps.c:1636: cmds_arr
+#    sps.c:1774: range_cmd_arr
+#    sps.c:1773: range_cmd_names
+#    sps.c:30: vars_str
+
+====== Log z jednotlivych testu ===
+1:ok:basic_set1: [1,1]
+0.2:ok:basic_set1: [1,1];[2,2]
+1:ok:sel1: [1,1];set x
+0.3:ok:sel1: [1,1];[2,2];set x
+0.5:ok:sel2: [1,_];set x
+0.4:ok:sel3: [_,_];set x
+0.3:ok:min: [3,_];[min];set x
+0.3:ok:max: [_,_];[max];set x
+0.4:ok:find: [_,_];[find orld];set x
+0.4:ok:irow: [1,1];irow
+0.4:ok:arow: [1,1];arow
+0.4:ok:icol: [1,2];icol
+0.4:ok:acol: [1,2];acol
+0.2:ok:drow: [1,1];drow
+0.3:ok:dcol: [1,1];dcol
+0.3:ok:clear: [2,2];clear
+0.4:ok:swap: [1,1];swap [2,1]
+0.4:ok:sum: [1,3,2,3];sum [3,3]
+0.4:ok:avg: [1,3,2,3];avg [3,3]
+0:failed:count: [1,3,2,3];count [3,3]
+#    V bunce [3,3] ma byt '2', ale je tam '5'
+0.3:ok:len: [1,1];len [3,3]
+0.4:ok:vars1: [1,1];def _0;[2,1];def _1;use _0;[1,1];use _1
+0.3:ok:vars2: [1,3];def _9;inc _9;use _9
+0.4:ok:vars3: [1,1];[set];[2,1];[_];set x
+0.5:ok:esc1: [2,1];arow
+0:failed:esc2: [2,1];arow
+#    V bunce [2,1] ma byt '"hello \"world\""', ale je tam 'hello \"world\"'
+0:failed:goto1: [1,1];goto +2;len [1,1];[2,2];[2,2];set x
+#    V bunce [2,2] ma byt 'x', ale je tam 'world'
+0:failed:ctl: [1,1];[3,1];def _0;[3,3];def _1;sub _1 _0;iszero _1 +7;[1,1];set x;[3,3];set 3;goto -11;[1,1];[1,1]
+#    V bunce [1,1] ma byt 'x', ale je tam 'ahoj'
+#    V bunce [3,3] ma byt '3', ale je tam '5'
+0:ok:valgrind: manipulace s pameti
+
