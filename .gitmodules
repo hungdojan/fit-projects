@@ -10,3 +10,6 @@
 [submodule "2BIT/IFJ"]
 	path = 2BIT/IFJ
 	url = https://github.com/hungdojan/IFJ21_compiler
+[submodule "2BIT/ITU"]
+	path = 2BIT/ITU
+	url = https://github.com/Darbix/Reklamacka
