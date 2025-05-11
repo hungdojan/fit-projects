@@ -1,0 +1,61 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[czech]{babel}
+\usepackage[left=2cm,text={17cm,24cm},top=3cm]{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage[perpage]{footmisc}
+\usepackage{graphicx}
+
+\graphicspath{ {..} }
+
+\definecolor{gray}{rgb}{0.95,0.95,0.95}
+\definecolor{darkred}{rgb}{0.545,0,0}
+
+\title{Dokumentace k projektu z IZV \\
+        \large Hlavní důvody nehod na silnici}
+
+\author{Hung Do \\ \href{mailto:xdohun00@stud.fit.vutbr.cz}{xdohun00@stud.fit.vutbr.cz}}
+
+\begin{document}
+    \maketitle
+    Jaká je hlavní příčina nehod na silnicích v České republice? Podíváme-li se do databáze
+    Policie ČR, můžeme vyčíst, že přes \textbf{56 \%} zaevidovaných nehod bylo způsobeno nesprávnou jízdou řidiče.
+
+    Budeme-li zkoumat tento údaj podrobněji, můžeme zjistit, že nejčastější příčinou je \textbf{nevěnování se řízení vozidla}.
+    Mezi dalšími důvody patří \textbf{nesprávné otáčení nebo couvání} nebo \textbf{nedodržení bezpečné vzdálenosti za vozidlem} (viz. \ref{table_accidents}).
+    \begin{table}[ht]
+        \centering
+        \begin{tabular}{|c|c|c|} \hline
+            \textbf{Příčina nehody}                             & \textbf{Počet nehod} & \textbf{Podíl (v \%)} \\ \hline
+            Řidič se nevěnoval řízení vozidla                   & 96820 & 30.17 \\ \hline
+            Nesprávné otáčení nebo couvání                      & 48920 & 15.24 \\ \hline
+            Nedodržení bezpečné vzdálenosti za vozidlem         & 40631 & 12.66 \\ \hline
+            Nezvládnnutí řízení vozidla                         & 31294 & 9.75 \\ \hline
+            Vyhýbání bez dostatečného bočního odstupu (vůle)    & 23954 & 7.46 \\ \hline
+
+        \end{tabular}
+        \caption{Pět nejčastějších důvodů nehody}
+        \label{table_accidents}
+    \end{table}
+
+    Přestože nevěnování se řízení je nejčastější důvod nehody, není to z daleka nejfatálnější. Nejčastěji totiž docházelo k úmrtí
+    při \textbf{vjetí vozidla do protisměru}. V období mezi lety 2016 a (srpna) 2021
+    přišlo tímto způsobem o život (do 24 hodin od nehody) 390 lidí (viz. \ref{figure_fatality}).
+
+    Další zajímavou statistikou je průměrná škoda na vozidle dle příčiny nehody. Nejvíce poškozená vozidla jsou způsopbena
+    \textbf{vjetím na nezpevněnou komunikaci} (cca 78 935.51 Kč).
+
+    Nakonec se koukneme do krajů, jak si ony vedou v těchto statistikách. Například v Praze řidiči \textbf{nedodržují bezpečnou vzdálenost}, naopak \textbf{nejagresivněji}
+    bývají řidiči v Moravskoslezkém kraji. A řidiči se nejvíce \textbf{nevěnují řízení} v Ústeckém kraji.
+    \begin{figure}[ht]
+        \centering
+        \includegraphics[height=20cm]{fig}
+        \caption{Počet zranění v závislosti na příčině nehody}
+        \label{figure_fatality}
+    \end{figure}
+
+
+\end{document}
