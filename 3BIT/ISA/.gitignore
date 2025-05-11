@@ -1,0 +1,16 @@
+.ccls-cache/
+*.o
+doc/
+dns_sender
+dns_receiver
+*.tar.gz
+examples/*
+!examples/udp_data.txt
+!examples/simple.txt
+.ccls
+.vscode
+docs/*
+!docs/resources/
+!docs/*.tex
+!docs/*.bib
+!docs/*.bst
