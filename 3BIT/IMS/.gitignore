@@ -1,0 +1,8 @@
+*.o
+*.zip
+ims_project*
+.ccls
+doc/
+.ccls-cache/
+.venv
+.vscode
