@@ -1,0 +1,9 @@
+[submodule "1BIT/IJC"]
+	path = 1BIT/IJC
+	url = https://github.com/hungdojan/IJC_Projekty
+[submodule "1BIT/IVS/prj1"]
+	path = 1BIT/IVS/prj1
+	url = https://github.com/hungdojan/IVS_Projekt1
+[submodule "1BIT/IVS/prj2"]
+	path = 1BIT/IVS/prj2
+	url = https://github.com/hungdojan/IVS_Kalkulacka
