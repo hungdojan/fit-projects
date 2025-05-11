@@ -19,3 +19,6 @@
 [submodule "2BIT/IJA"]
 	path = 2BIT/IJA
 	url = https://github.com/hungdojan/IJA_Project
+[submodule "2BIT/IPP"]
+	path = 2BIT/IPP
+	url = https://github.com/hungdojan/IPP_Project
