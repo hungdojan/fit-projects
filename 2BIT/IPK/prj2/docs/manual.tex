@@ -1,0 +1,146 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[czech]{babel}
+\usepackage[left=2cm,text={17cm,24cm},top=3cm]{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\definecolor{gray}{rgb}{0.95,0.95,0.95}
+\definecolor{darkred}{rgb}{0.545,0,0}
+
+\title{Dokumentace k 2. projektu z IPK \\
+        \large Varianta ZETA: sniffer paketů}
+
+\author{Hung Do \\ \href{mailto:xdohun00@stud.fit.vutbr.cz}{xdohun00@stud.fit.vutbr.cz}}
+
+\begin{document}
+    \maketitle
+    \thispagestyle{empty}
+    \newpage
+    \tableofcontents
+    \newpage
+    \section{Úvod}
+    \subsection{Co je to paket?}
+    \label{sec:CoJeToPaket}
+    V dnešní době zařízení spolu komunikují tak, že si mezi sebou přeposílají zprávy. 
+    Aby se zprávy mohly odesílat efektivně, je potřeba tyto zprávy rozříznout na menší úseky.
+    A těmto úsekům se říkají \emph{pakety}.
+
+    \textbf{Paket} je tedy malý segment velké zprávy. Každá zpráva se rozdělí před odesláním na pakety, které se pak posílají po síti.
+    Každý paket pak může k příjemci doputovat jinou cestou a v jiný okamžík. Koncové zařízení ale dokáže po přijetí všech paketů zprávu znovu sestavit \cite{ComputerNetworking}.
+     
+    \subsection{Co je to sniffer packet?}
+    \textbf{Packet sniffer}, česky analyzátor paketů nebo paketový sniffer, je prgram, který monitoruje provoz sítě.
+    Program funguje tak, že sleduje a zachytává příchozí a odchozí datové pakety v síti. 
+    Uživatel pak může analyzovat obsah těchno paketů. Jsou dva režimy zachytávání paketů: \textbf{nefiltrovaný režim}, který zachytává všechny pakety, 
+    nebo \textbf{filtrovaný režim}, který zachytává jenom pakety splňující parametry filtru (např. použitý protokol, nebo IP adresa destinace) \cite{KasperskyPacketSniffer}.
+
+    \section{Použité prostředky}
+    V projektu byly použité prostředky \emph{libpcap} a aplikace \emph{Wireshark}. 
+    \textbf{Libpcap} je open-source knihovna, která obsahuje rozhraní pro zachytávání paketů v síti \cite{LibpcapPage}.
+    \textbf{Wireshark} je volně dostupná aplikace pro analýzu provozu v počítačových sítích\footnote{Oficiální stránka Wireshark: \url{https://www.wireshark.org/}}. 
+
+    \section{Implementace}
+    Celá aplikace je napsaná v jazyce C a je rozdělen do tří částí: načítání argumentů, zachytávání paketů a jejich následovné zpracování.
+
+    \subsection{Načítání argumentů}
+    Argumenty se zpracovávají v souborech \verb|arguments.c| a \verb|arguemnts.h|. Tyto soubory používají API \verb|getopts.h|.
+    Jádrem tohoto modulu je funkce \verb|getopt_long|, která podporuje načítání slovních argumentů (argumentů začínající prefixem \verb|--|).
+    Volitelné parametry argumentů muselo být ručně řešeno pomocí knihovní proměnné \verb|optind|, která si uchovává pozice parametru v seznamu argumentů\footnote{Více informací na manuálové stránce: \url{https://linux.die.net/man/3/getopt_long}}.
+
+    Po zpracování argumentů se modul chová jako \emph{read-only} globální struktura. Jedná se o simulaci zapozdření ve strukturovaném programovacím jazyce C.
+
+    \subsection{Zachytávání paketů}
+    V druhé části aplikace inicializuje zachytavač paketů. Poté, co uživatel vybere rozhraní, ze kterého chce pakety zachytávat,
+    se vytvoří zachytávač pomocí funkce \verb|pcap_create|, nastaví se potřebná data, jako například časovač, a následně se aktivuje pomocí funkce \verb|pcap_activate|.
+
+    Struktura zachytávače je poté předána do funkce \verb|pcap_loop|. Ten až do přerušení čte pakety. Jakmile se zacbytí paket, tak se spustí
+    uživatelem definovaná fce \verb|packet_handler|, který se už stará o zpracování paketu\footnote{Více informací na manuálové stránce: \url{https://www.tcpdump.org/manpages/pcap.3pcap.html}}.
+
+    \newpage
+    \subsection{Zpracování a výpis obsahu paketu}
+    Jak už víme ze sekce \ref{sec:CoJeToPaket}, paket je malý segment velké zprávy. Jedná se o pole bajtů, který se řídí jasně daným tvarem/rozhraním.
+    V projektu má aplikace být schopna zpracovat 4 protokoly:
+    \begin{itemize}
+        \item TCP
+        \item UDP
+        \item TCMP
+        \item ARP
+    \end{itemize}
+    Paket se může skládat ze 3 až 4 částí (headerů). Každý paket má \textbf{Ethernet Frame}, podle kterého se zjistí, jakého protokolu přijatý paket je.
+    Pod ním se může schovávat \textbf{Internet Protocol} (IP) nebo \textbf{Address Resolution Protocol} (ARP). A IP může obsahovat \textbf{Tangosol Cluster Management Protocol} (TCMP), \textbf{Transmission Control Protocol} (TCP), nebo \textbf{User Diagram Protocol} (UDP).
+
+    Součástí UNIX operačních systémů jsou hlavičkové soubory pod \verb|netinet| API, který na všechny tyto sekce má vytvořenou strukturu (např. \verb|struct iphdr| pro IPv4 protokol nebo \verb|struct ethhdr| pro Ethernet rámec).
+    Stačilo tedy jenom součítat offset v poli bajtů pro danou sekci a přetypovat pole na danou strukturu. Získané informace se pak zpracovávaly v \verb|header_display.c| a \verb|header_display.h| souborech.
+    Soubory \verb|packet_handler.c| a \verb|packet_handel.h| obsahují definici funkci \verb|packet_handler| pro zpracování zachyceného packetu.
+
+    Příklad získání IP sekce v poli bajtů v jazyce C:
+    \begin{lstlisting}[language=C,
+                       backgroundcolor=\color{gray},
+                       keywordstyle=\color{darkred},
+                       commentstyle=\color{blue},
+                       basicstyle=\ttfamily\footnotesize,
+                       breaklines=true,
+                       showstringspaces=false]
+
+void packet_handler(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes) {
+    // ...
+    struct iphhdr *ip4 = (struct iphhdr *)(bytes + sizeof(struct ethhdr));
+    // ...
+}
+        
+    \end{lstlisting}
+    
+    \newpage
+    \section{Příkladné výstupy programu}
+    Program byl testován na operačním systému \verb|Manjaro Linux x86_64|, s jádrem \verb|5.15.32-1-MANJARO|.
+    Výstupy aplikace souhlasí s výstupy programu \textbf{Wireshark}.
+    
+\begin{verbatim}
+[thinkpad-e14 Project_2]# ./ipk-sniffer 
+enp2s0
+ap0
+any
+lo
+wlp3s0
+virbr223
+virbr0
+bluetooth0
+bluetooth-monitor
+nflog
+nfqueue
+dbus-system
+dbus-session
+[thinkpad-e14 Project_2]# ./ipk-sniffer -i enp2s0 -n 1
+--------------- Frame info ---------------
+Arrival time:         2022-04-24T01:51:44.7028+02:00
+Frame length:         60 bytes
+--------------- Ethernet II --------------
+Src MAC:              94:3f:c2:07:ca:10
+Dst MAC:              ff:ff:ff:ff:ff:ff
+Type:                 0x0806
+------ Address Resolution Protocol -------
+Hardware type:        1
+Protocol type:        0x0800
+Hardware size:        256
+Protocol size:        4
+Opcode:               1
+Sender MAC address:   94:3f:c2:07:ca:10
+Sender IP address:    147.229.208.1
+Target MAC address:   00:00:00:00:00:00
+Target IP address:    147.229.208.15
+-------------- Data Dump -----------------
+0x0000   ff ff ff ff ff ff 94 3f  c2 07 ca 10 08 06 00 01   .......? ........
+0x0010   08 00 06 04 00 01 94 3f  c2 07 ca 10 93 e5 d0 01   .......? ........
+0x0020   00 00 00 00 00 00 93 e5  d0 0f 00 00 00 00 00 00   ........ ........
+0x0030   00 00 00 00 00 00 00 00  00 00 00 00               ........ ....
+\end{verbatim}
+
+    \newpage
+    % zdroje
+    \bibliographystyle{czechiso}
+    \renewcommand{\refname}{Literatura}
+    \bibliography{citace}
+\end{document}
