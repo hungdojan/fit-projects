@@ -13,3 +13,9 @@
 [submodule "2BIT/ITU"]
 	path = 2BIT/ITU
 	url = https://github.com/Darbix/Reklamacka
+[submodule "2BIT/ICP"]
+	path = 2BIT/ICP
+	url = https://github.com/hungdojan/ICP_Project
+[submodule "2BIT/IJA"]
+	path = 2BIT/IJA
+	url = https://github.com/hungdojan/IJA_Project
