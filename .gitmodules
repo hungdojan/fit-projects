@@ -22,3 +22,6 @@
 [submodule "2BIT/IPP"]
 	path = 2BIT/IPP
 	url = https://github.com/hungdojan/IPP_Project
+[submodule "BP"]
+	path = BP
+	url = git@github.com:hungdojan/elastic-quacker.git
