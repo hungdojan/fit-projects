@@ -1,0 +1,14 @@
+*/*/*
+*/*
+!*/rec
+!*/iter
+
+!*/Makefile
+!*/*.h
+!*/*.c
+
+!*/*/*.c
+!*/*/*.h
+!*/*/Makefile
+
+!.gitignore

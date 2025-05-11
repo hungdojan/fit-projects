@@ -1,0 +1,9 @@
+*/*
+
+
+# Allow .gitignore files to be tracked
+!.gitignore
+!*/*.c
+!*/*.h
+!*/c*-test.output
+!*/Makefile
