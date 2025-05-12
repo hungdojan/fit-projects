@@ -1,0 +1,47 @@
+#### Stručně odpovězte na následující otázky: ######
+
+
+1. Byla "Line" vektorizace časově efektivní? Proč?
+==============================================================================
+Ano byla. Po vyměně vnitřního cyklu s prostředním (limit za sloupce) je možnost
+vypočítat několik hodnot ve sloupci najednou pomocí vektorizace. Nicméně je též
+potřeba předtím zarovnat pamět pomocí příkazu `_mm_malloc`.
+
+
+2. Jaká byla dosažena výkonnost v Intel Advisoru pro jednotlivé implementace 
+(v GFLOPS)?
+==============================================================================
+Line:  36.03 GFLOPS (Efficiency: 325.80x)
+Batch: 25.94 GFLOPS (Efficiency: 20.27x) 
+
+
+3. Jaká část kódu byla vektorizována v "Line" implementaci? Vyčteme tuto 
+informaci i u batch kalkulátoru?
+==============================================================================
+Advisor hlásí, že v Line kompilátor vektorizoval 3 for cykly:
+- Nejvnitřnější for cyklus, která prochází buňky po sloupcích
+- Smyčka v konstruktoru, kde se nuluje vytvořené pole dat
+- Poslední smyčku, která generuje druhou polovinu matice (protože je symetrická)
+
+Batch oproti tomu má jen 2 vektorizované cykly:
+- Smyčka v konstruktoru, kde se nuluje vytvořené pole dat
+- Smyčka pro inicializaci hodnot na řádku (reálné a imaginární)
+
+V Batch byla nejvnitřnější for cyklus roziterován (odstranil se for loop
+a jednotlivé příkazy se provedli sekvenčně).
+
+
+4. Co vyčteme z Roofline modelu pro obě vektorizované implementace?
+==============================================================================
+U Line je hlavní vektorovaný for cyklus "memory bounded" (omezena pamětí; pamět
+nestíhá zásobovat smyčku daty). Inlinovaná funkce je pak "compute bounded"
+(výpočetní strop).
+Aritmetická intenzita cyklu je 0.25 FLOP/Byte pro L1. Pro inline funkci je to
+0.625 FLOPS/Byte pro L1.
+
+U Batch je smyčka pro inicializaci řádkových hodnot "memory bounded" (omezena
+pamětí; pamět nestíhá zásobovat algoritmus daty). Naopak inline funkce dosáhla
+výpočetního stropu.
+Aritmetická intenzita cyklu je 0.25 FLOP/Byte pro L1. Pro inline funkci je to
+0.82 FLOPS/Byte pro L1.
+
