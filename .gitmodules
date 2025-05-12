@@ -28,3 +28,6 @@
 [submodule "1MIT/PIS"]
 	path = 1MIT/PIS
 	url = git@github.com:hungdojan/PIS_Project.git
+[submodule "DP"]
+	path = DP
+	url = git@github.com:hungdojan/FIT_CTF.git
