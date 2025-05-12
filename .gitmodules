@@ -25,3 +25,6 @@
 [submodule "BP"]
 	path = BP
 	url = git@github.com:hungdojan/elastic-quacker.git
+[submodule "1MIT/PIS"]
+	path = 1MIT/PIS
+	url = git@github.com:hungdojan/PIS_Project.git
