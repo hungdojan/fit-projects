@@ -1,0 +1,4 @@
+root = true
+
+[*.cpp]
+trim_trailing_whitespace = true
