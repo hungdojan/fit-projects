@@ -1,0 +1,7 @@
+FROM docker.io/library/swipl:latest
+
+RUN apt update && apt install make bash-completion
+
+WORKDIR /data
+
+CMD "/bin/bash"
