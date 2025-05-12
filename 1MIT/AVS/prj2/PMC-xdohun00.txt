@@ -1,0 +1,134 @@
+Architektury Výpočetních Systémů (AVS 2023)
+Projekt č. 2 (PMC)
+Login: xdohun00
+
+Úloha 1: Paralelizace původního řešení
+===============================================================================
+
+1) Kterou ze smyček (viz zadání) je vhodnější paralelizovat a co způsobuje 
+   neefektivitu paralelizaci té druhé?
+
+- Vhodnější bylo paralelizovat vnější smyčku (smyčku ve funkci marchBuild). U
+  druhé smyčky se bohužel dochází k paralelnímu zápisu do proměnné `value`. Aby
+  se předešlo "race condition", je potřeba zavést výlučný přístup do kritické
+  sekce. To bohužel může zpomalit algoritmus.
+
+2) Jaké plánování (rozdělení práce mezi vlákna) jste zvolili a proč? 
+   Jaký vliv má velikost "chunk" při dynamickém plánování (8, 16, 32, 64)?
+
+- Při testování bylo zjištěno, že dynamic konfigurace je nejoptimálnější.
+  Důvodem je optimálnější rozložení práce mezi vlákny. Jelikož v celé krychli se
+  nachází "prázdná místa", ve kterých se nenachází v žádné blízkosti žádný iso
+  bod, tak tyto krychle nemá cenu počítat. Nejdéle tedy počítají vlákna, která
+  mají oblast "povrchu" objektu. Guided a static v tomto případě přidělují
+  vláknům velký rozsah iterací, dynamic naproti tomu přiděluje vláknům menší
+  rozsah iterace. Proto je v tomto ohledu dynamické plánování efektivnější. 
+
+  Při přidělování chunk size při dynamickém plánování bylo nejefektivnější chunk
+  size 16, což bylo optimální kompromis mezi menšími iteracemi (lepší rozložení
+  práce) a režií (dynamické plánování potřebuje z těchto tří plánování největší
+  režii). Nicméně statické plánování s malým chunk size bylo efektivnější.
+
+  Výsledky testování (32 threads, bun_zipper_res4, grid 64):
+  static:  82.84 ms
+  dynamic: 71.20 ms
+  guided:  87.42 ms
+
+  Chunk size (ms):
+  +---+-----+-----+-----+-----+-----+-----+  
+  |   |  1  |  2  |  4  |  8  |  16 |  32 |  
+  +---+-----+-----+-----+-----+-----+-----+  
+  | S |65.56|64.28|65.16|65.06|66.52|66.44|
+  +---+-----+-----+-----+-----+-----+-----+  
+  | D |73.19|72.60|70.66|71.27|67.57|70.08|
+  +---+-----+-----+-----+-----+-----+-----+  
+  | G |80.61|80.71|84.17|77.33|83.80|90.41|
+  +---+-----+-----+-----+-----+-----+-----+  
+
+3) Jakým způsobem zajišťujete ukládání trojúhelníků z několika vláken současně?
+
+- Ukládání trojúhelníků je řešeno výlučným přístupem do kritické sekce (pomocí
+  pragmy critical).
+
+
+Úloha 2: Paralelní průchod stromem
+===============================================================================
+
+1) Stručně popište použití OpenMP tasků ve vašem řešení.
+
+- V hlavní funkci `marchCubes` se inicializují vlákna. Ta jsou pak vytvářená ve
+  funkci `divideAndConquer`, která rekurzivně volá tuto funkci na menších
+  krychlích. Jelikož se vytváří 8 krychlí, v cyklu se vytvoří 8 tasků.
+
+2) Jaký vliv má na vaše řešení tzv. "cut-off"? Je vhodné vytvářet nový 
+   task pro každou krychli na nejnižší úrovni?
+
+- Jelikož se na nejnižsí úrovni (velikost hrany krychle je 1) už se další
+  krychle nevytvářejí a není vůbec co paralelizovat, tak se žádný task už
+  nevytváří.
+
+3) Jakým způsobem zajišťujete ukládání trojúhelníků z několika vláken současně?
+
+- Ukládání trojúhelníků je řešeno výlučným přístupem do kritické sekce (pomocí
+  pragmy critical).
+
+Úloha 3: Grafy škálování všech řešení
+===============================================================================
+
+1) Stručně zhodnoťte efektivitu vytvořených řešení (na základě grafů ŠKÁLOVÁNÍ).
+
+- Ze silného škálování můžeme vidět, že pro vybrané benchmarkové vstupy byly
+  úlohy nejrychleji vyřešený, který pracovaly na 8 vláknech. Slabé škálování nám
+  u Octree ukazuje, že pro malé úlohy nebylo výhodné použít víc vláken, protože
+  víc času se nejspíš spálilo na režii. Graf loopu oproti tomu vypadá trochu
+  lépe, některé křivky se blíží optimální křivce (konstantní/vodorovná čára).
+
+2) V jakém případě (v závislosti na počtu bodů ve vstupním souboru a velikosti 
+   mřížky) bude vaše řešení 1. úlohy neefektivní? (pokud takový případ existuje)
+
+- Oproti stromové implementaci bude implementace 1. úlohy neefektivní v případě,
+  že počet bodů ve vstupním souboru bude málo bodů a velikost gridu bude vysoká.
+  Pak bude mnoho krychel, které jsou buď celé nad povrchem nebo pod povrchem,
+  tudíž nemusí být vyhodnocovány. Tyto krychle jsou ignorovány ve stromové
+  implementaci mnohem dříve.
+
+3) Je (nebo není) stromový algoritmus efektivnější z pohledu slabého škálování 
+   vzhledem ke vstupu?
+
+- Z grafu jde vyčíst, že stromová implementace je neefektivní z pohledu slabého
+  škálování. V ideálním případě chceme, aby každá křivka vypadala jako
+  konstantní funkce (křivka je paralelní s x-ovou osou). Jelikož křivka je
+  vzrůstového charakteru, tak nám říká, že při použítí více jader (výkonnějšího
+  stroje), bude každé jádro pracovat déle (viz. modrá křivka).
+
+4) Jaký je rozdíl mezi silným a slabým škálováním?
+
+- Silné škálování mám zobrazuje pro konstantní práci (konstantní velikost
+  vstupu), za jak dlouho byl výpočet dokončet pro zvolený počet vláken. Slabé
+  škálování nám zobrazuje konstatní čas výpočtu na jádro, neboli pokud dáme
+  každému jádru stejnou práci, kolik času stráví každý z nich výpočtem.
+
+Úloha 4: Analýza využití jader pomocí VTune
+================================================================================
+
+1) Jaké bylo průměrné využití jader pro všechny tři implementace s omezením na 
+   18 vláken? Na kolik procent byly využity?
+   
+   ref:   0.995 jader (2.8% využití)
+   loop: 17.274 jader (48% využití)
+   tree: 15.907 jader (44.2% využití)
+
+2) Jaké bylo průměrné využití jader pro všechny tři implementace s využitím 
+   všech jader? Na kolik procent se podařilo využít obě CPU?
+   
+   ref:   0.995 jader (2.8% využití)
+   loop: 31.809 jader (88.4% využití)
+   tree: 26.372 jader (73.3% využití) 
+
+3) Jaké jsou závěry z těchto měření?
+
+- Obě implementace využívají jádra efektivněji než referenční řešení.
+  Implementace pomocí Loop lépe využívá jádra oproti implementaci Octree. Octree
+  je na druhou stranu optimalizován algoritmicky (přeskakuje výpočet krychel, u
+  kterých se ví, že nejsou potřeba počítat). Nicméně kvůli rekurzivní
+  implementaci stráví vlákna víc času čekáním (což můžeme vyčíst z Bottom-up panelu).
