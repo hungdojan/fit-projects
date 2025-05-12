@@ -1,0 +1,508 @@
+# vim: set ft=python:
+"""
+A Python script that parses log files, extract features using event matrix and trains a
+model to detect anomalies in new log files.
+
+This file serves as a submission to a PDS assignment at FIT, BUT 2023/24.
+
+Author: Hung Do (xdohun00)
+Date of submission: 22.04.2024
+File: log-monitor
+"""
+from __future__ import annotations
+import argparse
+import pandas as pd
+import re
+import numpy as np
+from datetime import datetime
+from sklearn.ensemble import IsolationForest
+
+START_EVENT_ID = 18
+STOP_EVENT_ID = 10
+LOG_PREFIX_REGEX = re.compile(
+    r"([\w:.-]+) (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d*) (\d+) ([A-Z]+) ([^\s]+)(?:\s*\[(.*?)\])?"
+)
+EVENT_REGEX = [
+    # E1
+    re.compile(
+        r'(?:.*) "GET (?:.*)" status: (?:.*) len: (?:.*) time: (?:.*).(?:.*)',
+    ),
+    re.compile(
+        r"image (?:.*) at \((?:.*)\): checking",
+    ),
+    re.compile(
+        r"image (?:.*) at \((?:.*)\): in use: on this node (?:.*) local, (?:.*) on other nodes sharing this instance storage",
+    ),
+    re.compile(
+        r"Active base files: (?:.*)",
+    ),
+    re.compile(
+        r'(?:.*) "POST (?:.*)" status: (?:.*) len: (?:.*) time: (?:.*).(?:.*)',
+    ),
+    re.compile(
+        r"\[instance: (.*)\] VM Resumed \(Lifecycle Event\)",
+    ),
+    re.compile(
+        r"During sync_power_state the instance has a pending task \((?:.*)g\). Skip.",
+    ),
+    re.compile(
+        r"Removable base files: (?:.*)",
+    ),
+    re.compile(
+        r"Unknown base file: (?:.*)",
+    ),
+    # E10
+    # SESSION END
+    re.compile(
+        r"\[instance: (.*)\] VM Stopped \(Lifecycle Event\)",
+    ),
+    re.compile(
+        r"\[instance: (.*)\] Creating image",
+    ),
+    re.compile(
+        r"\[instance: (.*)\] VM Paused \(Lifecycle Event\)",
+    ),
+    re.compile(
+        r"\[instance: (.*)\] Took (?:.*).(?:.*) seconds to build instance.",
+    ),
+    re.compile(
+        r"\[instance: (.*)\] Instance spawned successfully.",
+    ),
+    re.compile(
+        r"\[instance: (.*)\] VM Started \(Lifecycle Event\)",
+    ),
+    re.compile(
+        r"\[instance: (.*)\] Took (?:.*).(?:.*) seconds to spawn the instance on the hypervisor.",
+    ),
+    re.compile(
+        r"\[instance: (.*)\] Claim successful",
+    ),
+    # SESSION START
+    re.compile(
+        r"\[instance: (.*)\] Attempting claim: memory (?:.*) MB, disk (?:.*) GB, vcpus (?:.*) CPU",
+    ),
+    re.compile(
+        r"\[instance: (.*)\] disk limit not specified, defaulting to unlimited",
+    ),
+    # E20
+    re.compile(
+        r"\[instance: (.*)\] memory limit: (?:.*).(?:.*) MB, free: (?:.*).(?:.*) MB",
+    ),
+    re.compile(
+        r"\[instance: (.*)\] Total disk: (?:.*) GB, used: (?:.*).(?:.*) GB",
+    ),
+    re.compile(
+        r"\[instance: (.*)\] Took (?:.*).(?:.*) seconds to deallocate network for instance.",
+    ),
+    re.compile(
+        r"\[instance: (.*)\] vcpu limit not specified, defaulting to unlimited",
+    ),
+    re.compile(
+        r"Creating event network-vif-plugged:(?:.*)-(?:.*)-(?:.*)-(?:.*)-(?:.*) for instance (?:.*)",
+    ),
+    re.compile(
+        r"\[instance: (.*)\] Total vcpu: (?:.*) VCPU, used: (?:.*).(?:.*) VCPU",
+    ),
+    re.compile(
+        r"\[instance: (.*)\] Total memory: (?:.*) MB, used: (?:.*).(?:.*) MB",
+    ),
+    re.compile(
+        r"\[instance: (.*)\] Terminating instance",
+    ),
+    re.compile(
+        r'(?:.*) "DELETE (?:.*)" status: (?:.*) len: (?:.*) time: (?:.*).(?:.*)',
+    ),
+    re.compile(
+        r"\[instance: (.*)\] Took (?:.*).(?:.*) seconds to destroy the instance on the hypervisor.",
+    ),
+    # E30
+    re.compile(
+        r"\[instance: (.*)\] Instance destroyed successfully.",
+    ),
+    re.compile(
+        r"Removing base or swap file: (?:.*)",
+    ),
+    re.compile(
+        r"\[instance: (.*)\] Deletion of (?:.*) complete",
+    ),
+    re.compile(
+        r"HTTP exception thrown: No instances found for any event",
+    ),
+    re.compile(
+        r"\[instance: (.*)\] Deleting instance files (?:.*)",
+    ),
+    re.compile(
+        r"Final resource view: name=(?:.*) phys_ram=(?:.*) used_ram=(?:.*) phys_disk=(?:.*) used_disk=(?:.*) total_vcpus=(?:.*) used_vcpus=(?:.*) pci_stats=\[\]",
+    ),
+    re.compile(
+        r"Total usable vcpus: (?:.*), total allocated vcpus: (?:.*)", re.UNICODE
+    ),
+    re.compile(
+        r"Compute_service record updated for (?:.*)",
+    ),
+    re.compile(
+        r"Auditing locally available compute resources for node (?:.*)", re.UNICODE
+    ),
+    re.compile(
+        r"Base or swap file too young to remove: (?:.*)",
+    ),
+    # E40
+    re.compile(
+        r"Successfully synced instances from host \'(?:.*)\'.",
+    ),
+    re.compile(
+        r"The instance sync for host \'(?:.*)\' did not match. Re-created its InstanceList.",
+    ),
+    re.compile(
+        r"ERROR (?:.*)",
+    ),
+    re.compile(
+        r"While synchronizing instance power states, found (?:.*) instances in the database and (?:.*) instances on the hypervisor.",
+    ),
+    re.compile(
+        r"Running instance usage audit for host (?:.*) from (?:.*)-(?:.*)-(?:.*) (?:.*):(?:.*):(?:.*) to (?:.*)-(?:.*)-(?:.*) (?:.*):(?:.*):(?:.*). (?:.*) instances.",
+    ),
+    re.compile(
+        r"couldn't obtain the vcpu count from domain id: (?:.*), exception: (?:.*)",
+    ),
+    re.compile(
+        r"CRITICAL (?:.*)",
+    ),
+    # E47
+    re.compile(
+        r"Identity response: (?:.*)",
+    ),
+]
+
+
+def process_args() -> argparse.Namespace:
+    """A function that parses program arguments."""
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-training", help="Log file containing training data.", required=True
+    )
+    parser.add_argument(
+        "-testing", help="Log file containing testing data.", required=True
+    )
+    parser.add_argument(
+        "-c",
+        "--contamination",
+        help="Percentage of anomalies in training data (range <0; 0.5>). Defaults to 0.05.",
+        type=float,
+        default=0.05,
+    )
+    parser.add_argument(
+        "-rs",
+        "--random-state",
+        help="A constant used as a seed for isolation forest algorithm. Same seed value with same input data will generate identical model. Defaults to 42.",
+        type=int,
+        default=42,
+    )
+    parser.add_argument(
+        "-th",
+        "--anomaly-score-threshold",
+        help="Show instances that have anomaly score lower than the given value (range <-1; 0>). Defaults to 0.",
+        default=0,
+        type=float,
+    )
+    parser.add_argument(
+        "-el",
+        "--export-log-structure",
+        help="Export log structures to CSV file.",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-ee",
+        "--export-event-matrices",
+        help="Export event matrices of training and testing data to CSV file.",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-ea",
+        "--export-anomaly",
+        help="Export anomaly instances to CSV file.",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        help="Show logging prints.",
+        action="store_true",
+    )
+    return parser.parse_args()
+
+
+def parse_line(line: str) -> tuple:
+    """Parse a line from the log file.
+
+    If the line matches the pattern in EVENT_REGEX then function will assign event ID
+    to the line. The function will also extract additional information from the report
+    such as:
+    - EventID
+    - LogRecord
+    - Timestamp
+    - PID
+    - LogLevel
+    - Component
+    - Address
+    - InstanceID
+    - Content
+    Finally, the tuple with extracted information is then returned. If the line does not
+    match any pattern an event ID of `-1` is assigned.
+
+    Params:
+        line (str): A line from the log file.
+
+    Returns:
+        tuple: Structured data of the log
+    """
+
+    def _create_row(
+        event_id: int, prefix_regex_match: re.Match | None, instance_id: str | None
+    ):
+        if not prefix_regex_match:
+            """Transform extracted data into the structure."""
+            return (
+                event_id,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                instance_id,
+                line,
+            )
+        return (
+            event_id,
+            prefix_regex_match.group(1),
+            datetime.strptime(prefix_regex_match.group(2), "%Y-%m-%d %H:%M:%S.%f"),
+            prefix_regex_match.group(3),
+            prefix_regex_match.group(4),
+            prefix_regex_match.group(5),
+            prefix_regex_match.group(6),
+            instance_id,
+            line,
+        )
+
+    # cycle through pattern and look for the match
+    for i, reg in enumerate(EVENT_REGEX):
+        res = reg.search(line)
+        if not res:
+            continue
+        # check if the line contains a VM instance id
+        instance_id = res.group(1) if len(res.groups()) > 0 else None
+        return _create_row(i + 1, LOG_PREFIX_REGEX.match(line), instance_id)
+    return _create_row(-1, LOG_PREFIX_REGEX.match(line), None)
+
+
+LOG_STRUCTURE_COLUMNS = np.array(
+    [
+        "EventID",
+        "LogRecord",
+        "Timestamp",
+        "PID",
+        "LogLevel",
+        "Component",
+        "Address",
+        "InstanceID",
+        "Content",
+    ]
+)
+
+
+def log_parsing(file: str) -> pd.DataFrame:
+    """Process the unstructured log file and covert it into a pd.DataFrame."""
+    data = []
+    with open(file, "r") as f:
+        data = [parse_line(line.rstrip()) for line in f]
+
+    df = pd.DataFrame(data, columns=LOG_STRUCTURE_COLUMNS).fillna(value=np.nan)
+    # convert column types to reduce memory size of the DataFrame
+    df["LogLevel"] = df["LogLevel"].astype("category")
+    df["PID"] = df["PID"].astype("int64")
+    return df
+
+
+def get_start_and_stop_session(log_df: pd.DataFrame) -> dict[str, dict[str, int | None]]:
+    """Extract row indices of the session start and end records for each instance in the given DataFrame.
+
+    The output dictionary object is structured this way:
+        {
+            <instanceID> : {
+                "start" : <row_index_or_none>,
+                "stop" : <row_index_or_none>,
+            },
+            <instanceID> : {
+                "start" : <row_index_or_none>,
+                "stop" : <row_index_or_none>,
+            },
+            ...
+        }
+
+    Params:
+        log_df (pd.DataFrame): A given DataFrame to extract information from.
+
+    Returns:
+        dict[str, dict[str, int | None]]: A dictionary with row indices of session start and end records.
+    """
+    instances = {}
+    # iterate though a list of unique instances in the log
+    for _id in log_df["InstanceID"].dropna().unique():
+        start_index = log_df.index[
+            (log_df["EventID"] == START_EVENT_ID) & (log_df["InstanceID"] == _id)
+        ].tolist()
+        start = start_index[0] if start_index else None
+        stop_index = log_df.index[
+            (log_df["EventID"] == STOP_EVENT_ID) & (log_df["InstanceID"] == _id)
+        ].tolist()
+        stop = stop_index[0] if stop_index else None
+        instances[_id] = {"start": start, "stop": stop}
+    return instances
+
+
+EVENT_IDS = [i + 1 for i in range(len(EVENT_REGEX))] + [-1]
+EVENT_MATRIX_COLUMNS = np.array(
+    ["InstanceID"] + [f"E{index}" for index in EVENT_IDS] + ["TimeDiff"]
+)
+
+
+def generate_event_matrix(log_df: pd.DataFrame) -> pd.DataFrame:
+    """Generate an event matrix using Session window method."""
+    instance_indices = get_start_and_stop_session(log_df)
+    all_instances = []
+    for _id, indices in instance_indices.items():
+        start = indices.get("start")
+        stop = indices.get("stop")
+        if not (start and stop):
+            continue
+
+        # building event matrix DataFrame
+        features = [_id]
+        features += (
+            log_df.iloc[start : stop + 1]
+            .groupby("EventID")["PID"]
+            .count()
+            .reindex(EVENT_IDS, fill_value=0)
+            .tolist()
+        )
+        time_diff = (
+            log_df.iloc[stop]["Timestamp"] - log_df.iloc[start]["Timestamp"]
+        ).total_seconds()
+        features.append(time_diff)
+        all_instances.append(features)
+    return pd.DataFrame(all_instances, columns=EVENT_MATRIX_COLUMNS)
+
+
+ANOMALY_INPUTS = ["E42", "E46", "TimeDiff", "E-1"]
+
+
+def train_model(
+    train_df: pd.DataFrame, contamination: float, random_state: int
+) -> IsolationForest:
+    """Trains a model using IsolationForest algorithm.
+
+    Params:
+        train_df (pd.DataFrame): A training data feature matrix (event matrix).
+        contamination (float): A rate of outliers in the training dataset.
+        random_state (int): A magical constant used for reproducing the model.
+
+    Returns:
+        IsolationForest: Trained model.
+    """
+    model_IF = IsolationForest(contamination=contamination, random_state=random_state)
+    model_IF.fit(train_df[ANOMALY_INPUTS])
+    train_df["AnomalyScore"] = model_IF.decision_function(train_df[ANOMALY_INPUTS])
+    train_df["Anomaly"] = model_IF.predict(train_df[ANOMALY_INPUTS])
+    return model_IF
+
+
+def print_log(args: argparse.Namespace, msg: str):
+    """A print wrapper to print debug logs."""
+    if args.verbose:
+        print(msg)
+
+
+def main():
+    args = process_args()
+    print_log(args, "Parsing arguments done")
+
+    # log extraction
+    print_log(args, f"Loading training data from `{args.training}`...")
+    df_train = log_parsing(args.training)
+    print_log(args, f"Loading testing data from `{args.testing}`...")
+    df_test = log_parsing(args.testing)
+
+    if args.export_log_structure:
+        print_log(
+            args,
+            "Exporting extracted training data to `training_log_structure.csv`...",
+        )
+        df_train.to_csv("training_log_structure.csv", index=False)
+        print_log(
+            args,
+            "Exporting extracted testing data to `testing_log_structure.csv`...",
+        )
+        df_test.to_csv("testing_log_structure.csv", index=False)
+
+    # log parsing
+    df_event_matrix_training = generate_event_matrix(df_train)
+    df_event_matrix_testing = generate_event_matrix(df_test)
+
+    if args.export_event_matrices:
+        print_log(
+            args,
+            "Exporting training data event matrix to `training_event_matrix.csv`...",
+        )
+        df_event_matrix_training.to_csv("training_event_matrix.csv", index=False)
+        print_log(
+            args,
+            "Exporting testing data event matrix to `testing_event_matric.csv`...",
+        )
+        df_event_matrix_testing.to_csv("testing_event_matrix.csv", index=False)
+
+    # model training
+    print_log(
+        args,
+        "Training parameters:\n"
+        f"    Contamination: {args.contamination}\n"
+        f"    Random state: {args.random_state}",
+    )
+    print_log(args, "Training model...")
+    model = train_model(df_event_matrix_training, args.contamination, args.random_state)
+
+    # anomaly detection
+    df_event_matrix_testing["AnomalyScore"] = model.decision_function(
+        df_event_matrix_testing[ANOMALY_INPUTS]
+    )
+    df_event_matrix_testing["Anomaly"] = model.predict(
+        df_event_matrix_testing[ANOMALY_INPUTS]
+    )
+    df_event_matrix_testing["Anomaly"] = df_event_matrix_testing["Anomaly"].replace(
+        {-1: "abnormal", 1: "normal"}
+    )
+    df_event_matrix_training["Anomaly"] = df_event_matrix_training["Anomaly"].replace(
+        {-1: "abnormal", 1: "normal"}
+    )
+
+    if args.export_anomaly:
+        print_log(
+            args, "Exporting training data anomalies to `training_anomaly.csv`..."
+        )
+        df_event_matrix_training[["InstanceID", "AnomalyScore", "Anomaly"]].to_csv(
+            "training_anomaly.csv", index=False
+        )
+        print_log(args, "Exporting testing data anomalies to `testing_anomaly.csv`...")
+        df_event_matrix_testing[["InstanceID", "AnomalyScore", "Anomaly"]].to_csv(
+            "testing_anomaly.csv", index=False
+        )
+
+    anomalies_df = df_event_matrix_testing.loc[
+        df_event_matrix_testing["AnomalyScore"] < args.anomaly_score_threshold
+    ][["InstanceID", "AnomalyScore"]].sort_values("AnomalyScore")
+    print_log(args, "")
+    print(anomalies_df.to_string(index=False))
+
+
+if __name__ == "__main__":
+    main()
