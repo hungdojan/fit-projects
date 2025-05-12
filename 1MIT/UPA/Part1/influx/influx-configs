@@ -1,0 +1,5 @@
+[admin_config]
+  url = "http://localhost:8086"
+  token = "XXX"
+  org = "FIT_UPA"
+  active = true

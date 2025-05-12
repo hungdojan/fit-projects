@@ -1,0 +1,51 @@
+artist(s)_name,released_year,key,mode,valence_%_ctg,danceability_%_ctg,energy_%_ctg,streams_%_ctg,speechiness_%_ctg,acousticness_%_ctg,bpm_ctg,top_playlists
+"Latto, Jung Kook",2023,B,Major,85-89%,80-89%,80-84%,<150.00M,4-7%,27-37%,122-128,top_playlists7
+Myke Towers,2023,C#,Major,60-64%,70-79%,70-74%,<150.00M,4-7%,5-7%,90-95,top_playlists7
+Olivia Rodrigo,2023,F,Major,30-34%,50-59%,50-54%,<150.00M,4-7%,13-18%,138-145,top_playlists7
+Taylor Swift,2019,A,Major,55-59%,50-59%,70-74%,<850.00M,12-15%,8-12%,165-206,top_playlists5
+Bad Bunny,2023,A,Minor,20-24%,60-69%,80-84%,<350.00M,4-7%,13-18%,138-145,top_playlists6
+"Dave, Central Cee",2023,C#,Major,65-69%,90-100%,55-59%,<200.00M,24-27%,19-26%,138-145,top_playlists7
+"Eslabon Armado, Peso Pluma",2023,F,Minor,80-84%,60-69%,75-79%,<750.00M,0-3%,38-50%,146-164,top_playlists6
+Quevedo,2023,F,Major,25-29%,60-69%,70-74%,<100.00M,4-7%,27-37%,96-104,top_playlists7
+Gunna,2023,C#,Minor,20-24%,80-89%,60-64%,<100.00M,8-11%,8-12%,129-137,top_playlists7
+"Peso Pluma, Yng Lvcas",2023,D,Minor,55-59%,80-89%,45-49%,<600.00M,32-35%,19-26%,165-206,top_playlists6
+"Bad Bunny, Grupo Frontera",2023,F#,Minor,55-59%,50-59%,70-74%,<550.00M,4-7%,19-26%,65-89,top_playlists6
+NewJeans,2023,F,Minor,50-54%,70-79%,80-84%,<100.00M,4-7%,13-18%,146-164,top_playlists7
+Miley Cyrus,2023,C,Major,65-69%,70-79%,65-69%,<1.35B,4-7%,5-7%,115-121,top_playlists4
+David Kushner,2023,D,Minor,30-34%,50-59%,40-44%,<400.00M,0-3%,72-97%,129-137,top_playlists6
+Harry Styles,2022,F#,Minor,65-69%,50-59%,70-74%,<2.55B,4-7%,27-37%,165-206,top_playlists3
+SZA,2022,G#,Major,40-44%,60-69%,70-74%,<1.20B,4-7%,5-7%,65-89,top_playlists5
+Fifty Fifty,2023,B,Minor,75-79%,70-79%,55-59%,<500.00M,0-3%,38-50%,115-121,top_playlists6
+Billie Eilish,2023,C,Major,10-14%,40-49%,5-9%,<50.00M,0-3%,72-97%,65-89,top_playlists7
+"Feid, Young Miko",2023,B,Major,65-69%,80-89%,65-69%,<350.00M,16-19%,13-18%,96-104,top_playlists6
+Jimin,2023,G,Major,35-39%,60-69%,70-74%,<400.00M,4-7%,0-1%,115-121,top_playlists7
+"Gabito Ballesteros, Junior H, Peso Pluma",2023,F,Minor,85-89%,60-69%,70-74%,<100.00M,4-7%,19-26%,138-145,top_playlists7
+Taylor Swift,2023,F#,Major,80-84%,60-69%,75-79%,<100.00M,0-3%,5-7%,122-128,top_playlists7
+Arctic Monkeys,2013,C,Minor,40-44%,40-49%,40-44%,<1.30B,0-3%,8-12%,129-137,top_playlists4
+"Bizarrap, Peso Pluma",2023,F,Minor,80-84%,80-89%,65-69%,<250.00M,4-7%,19-26%,129-137,top_playlists7
+"The Weeknd, Madonna, Playboi Carti",2023,C#,Major,80-84%,80-89%,65-69%,<150.00M,20-23%,5-7%,96-104,top_playlists7
+Fuerza Regida,2023,G,Minor,95-100%,70-79%,85-89%,<100.00M,8-11%,8-12%,129-137,top_playlists7
+"Rï¿½ï¿½ma, Selena G",2022,B,Major,80-84%,80-89%,80-84%,<900.00M,4-7%,38-50%,105-114,top_playlists5
+"Tainy, Bad Bunny",2023,F#,Minor,70-74%,80-89%,70-74%,<100.00M,4-7%,13-18%,122-128,top_playlists7
+Morgan Wallen,2023,F#,Major,50-54%,50-59%,65-69%,<450.00M,4-7%,38-50%,165-206,top_playlists6
+Dua Lipa,2023,B,Minor,75-79%,60-69%,85-89%,<150.00M,4-7%,2-4%,105-114,top_playlists6
+Troye Sivan,2023,F,Minor,35-39%,70-79%,80-84%,<50.00M,4-7%,0-1%,122-128,top_playlists7
+"Peso Pluma, Grupo Frontera",2023,F#,Major,60-64%,50-59%,85-89%,<100.00M,4-7%,38-50%,165-206,top_playlists7
+"The Weeknd, 21 Savage, Metro Boomin",2022,C#,Minor,15-19%,70-79%,60-64%,<850.00M,4-7%,27-37%,96-104,top_playlists5
+Taylor Swift,2022,E,Major,50-54%,60-69%,60-64%,<1.00B,4-7%,8-12%,96-104,top_playlists5
+"Karol G, Shakira",2023,E,Minor,60-64%,70-79%,60-64%,<650.00M,28-31%,51-71%,165-206,top_playlists6
+"Big One, Duki, Lit Killah, Maria Becerra, FMK, Rusherking, Emilia, Tiago pzk",2023,C,Major,60-64%,80-89%,65-69%,<150.00M,4-7%,8-12%,115-121,top_playlists7
+"Yahritza Y Su Esencia, Grupo Frontera",2023,F#,Major,35-39%,60-69%,70-74%,<200.00M,0-3%,27-37%,146-164,top_playlists7
+Taylor Swift,2014,F,Major,55-59%,70-79%,65-69%,<1.40B,4-7%,8-12%,96-104,top_playlists4
+Taylor Swift,2014,D,Major,45-49%,60-69%,75-79%,<800.00M,4-7%,0-1%,90-95,top_playlists5
+Fuerza Regida,2023,F,Minor,95-100%,70-79%,85-89%,<200.00M,4-7%,27-37%,122-128,top_playlists7
+"Junior H, Peso Pluma",2023,A,Minor,80-84%,50-59%,65-69%,<400.00M,4-7%,19-26%,138-145,top_playlists7
+"Post Malone, Swae Lee",2018,D,Major,90-94%,70-79%,50-54%,<2.85B,4-7%,51-71%,90-95,top_playlists3
+"Bebe Rexha, David Guetta",2022,G,Minor,35-39%,50-59%,95-100%,<1.15B,4-7%,2-4%,122-128,top_playlists4
+"Tyler, The Creator, Kali Uchis",2017,F#,Major,55-59%,50-59%,55-59%,<1.05B,8-11%,27-37%,65-89,top_playlists4
+"Nicki Minaj, Aqua, Ice Spice",2023,C,Major,75-79%,70-79%,55-59%,<100.00M,24-27%,51-71%,138-145,top_playlists7
+Miley Cyrus,2020,F,Major,45-49%,60-69%,60-64%,<600.00M,0-3%,8-12%,122-128,top_playlists6
+OneRepublic,2022,C,Major,80-84%,70-79%,80-84%,<1.10B,4-7%,8-12%,138-145,top_playlists5
+The Weeknd,2016,C#,Minor,50-54%,50-59%,50-54%,<1.65B,4-7%,8-12%,129-137,top_playlists6
+"The Weeknd, Daft Punk",2016,G,Major,45-49%,60-69%,55-59%,<2.60B,28-31%,13-18%,165-206,top_playlists2
+"Ariana Grande, The Weeknd",2023,C#,Minor,50-54%,50-59%,50-54%,<550.00M,4-7%,19-26%,65-89,top_playlists6

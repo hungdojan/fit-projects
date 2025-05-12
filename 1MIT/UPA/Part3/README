@@ -1,0 +1,41 @@
+Data extraction from the web
+============================
+
+Team: spolUPAchatelé🥇
+
+Members:
+- Do Hung       (xdohun00@stud.fit.vutbr.cz)
+- Kedra David   (xkedra00@stud.fit.vutbr.cz)
+- Orava Vojtech (xorava02@stud.fit.vutbr.cz)
+
+E-Shop: Oriental Mart: Asian Supermarket Online
+Shop URL: https://www.orientalmart.co.uk/
+
+Columns:
++-------------------+-----------------------------------+
+| Name              | Product name                      |
++-------------------+-----------------------------------+
+| Price (£)         | Product price in pounds           |
++-------------------+-----------------------------------+
+| Brand             | Product's brand                   |
++-------------------+-----------------------------------+
+| Size (g)          | Package size in grams             |
++-------------------+-----------------------------------+
+| Country of origin | From which country the product is |
++-------------------+-----------------------------------+
+| Energy (kcal)     | Number of kcal in 100 g           |
++-------------------+-----------------------------------+
+| Fat (g)           | Fat content in 100 g              |
++-------------------+-----------------------------------+
+| Saturated (g)     | Saturated fat content in 100 g    |
++-------------------+-----------------------------------+
+| Sugar (g)         | Sugar content in 100 g            |
++-------------------+-----------------------------------+
+| Carbohydrate (g)  | Carbs content in 100 g            |
++-------------------+-----------------------------------+
+| Protein (g)       | Protein content in 100 g          |
++-------------------+-----------------------------------+
+| Salt (g)          | Salt content in 100 g             |
++-------------------+-----------------------------------+
+| Fibre (g)         | Fibre content in 100 g            |
++-------------------+-----------------------------------+
